@@ -1,0 +1,8 @@
+build:
+	@go build -o bin/net-http
+
+run: build
+	@./bin/net-http
+
+test:
+	@go test -v ./...
