@@ -1,26 +1,24 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net-http/internal/repository"
+	db "net-http/internal/repository"
 	"net/http"
 	"strconv"
 )
 
 type APIServer struct {
 	listenAddr string
-	repo       *repository.Queries
-	ctx        context.Context
+	store      *db.Queries
 }
 
-func NewAPIServer(listenAddr string, repo *repository.Queries, ctx context.Context) *APIServer {
+func NewAPIServer(listenAddr string, store *db.Queries) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
-		repo:       repo,
-		ctx:        ctx,
+		store:      store,
 	}
 }
 
@@ -38,7 +36,7 @@ func (s *APIServer) Run() {
 }
 
 func (s *APIServer) handleGetUsers(w http.ResponseWriter, r *http.Request) error {
-	users, err := s.repo.FindAllUsers(s.ctx)
+	users, err := s.store.FindAllUsers(r.Context())
 
 	if err != nil {
 		return err
@@ -53,7 +51,7 @@ func (s *APIServer) handleGetUserByID(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	user, err := s.repo.FindUser(s.ctx, id)
+	user, err := s.store.FindUser(r.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +67,7 @@ func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) err
 
 	defer r.Body.Close()
 	user := repository.CreateUserParams{Name: createUserReq.Name, Email: createUserReq.Email}
-	i, err := s.repo.CreateUser(s.ctx, user)
+	i, err := s.store.CreateUser(r.Context(), user)
 	if err != nil {
 		return err
 	}
@@ -85,7 +83,7 @@ func (s *APIServer) handleUpdateUser(w http.ResponseWriter, r *http.Request) err
 
 	defer r.Body.Close()
 	user := repository.UpdateUsersParams{ID: updateUserReq.ID, Name: updateUserReq.Name, Email: updateUserReq.Email}
-	i, err := s.repo.UpdateUsers(s.ctx, user)
+	i, err := s.store.UpdateUsers(r.Context(), user)
 	if err != nil {
 		return err
 	}
@@ -98,7 +96,7 @@ func (s *APIServer) handleDeleteUser(w http.ResponseWriter, r *http.Request) err
 	if err != nil {
 		return err
 	}
-	if err := s.repo.DeleteUser(s.ctx, id); err != nil {
+	if err := s.store.DeleteUser(r.Context(), id); err != nil {
 		return err
 	}
 

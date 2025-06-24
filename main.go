@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"net-http/internal/repository"
-	"os"
+	"log"
+	db "net-http/internal/repository"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -13,12 +13,12 @@ func main() {
 
 	conn, err := pgx.Connect(ctx, "postgres://postgres:12345@localhost:5432/testes")
 	if err != nil {
-		os.Exit(1)
+		log.Fatal("Erro ao se conectar com o banco de dados")
 	}
 	defer conn.Close(ctx)
 
-	repo := repository.New(conn)
+	store := db.New(conn)
 
-	server := NewAPIServer(":8000", repo, ctx)
+	server := NewAPIServer(":8000", store)
 	server.Run()
 }
